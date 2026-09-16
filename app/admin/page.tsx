@@ -33,10 +33,11 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
         <form action={salir}><button className="link">Salir</button></form>
       </div>
 
-      <h1 className="res-head">Enviar invitaciones</h1>
+      <h1 className="res-head">Rondas de evaluación</h1>
       <p className="res-sub">
-        Cada persona recibe un correo con su enlace personal de un solo uso. El
-        enlace vence a los 14 días.
+        Cada ronda tiene un enlace para compartir por WhatsApp, en una
+        reunión o donde quieras. Lo activas y desactivas cuando quieras;
+        apagado, el enlace no funciona.
       </p>
 
       {q.error && <p className="aviso error">{q.error}</p>}
@@ -47,40 +48,12 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
         </p>
       )}
 
-      <form action={enviar} className="panel">
-        <label>
-          Nombre de la ronda
-          <input name="ciclo" required placeholder="Liderazgo ICP — Otoño 2026" />
-        </label>
-        <label>
-          Participantes — uno por línea: <code>nombre, correo, ministerio, idioma</code>
-          <textarea
-            name="participantes" required rows={8} spellCheck={false}
-            placeholder={"Jose Rivera, jose@ejemplo.com, Jóvenes, es\nMary Colon, mary@ejemplo.com, Alabanza, en"}
-          />
-        </label>
-        <p className="ayuda">
-          Puedes pegar directo desde Excel o Google Sheets (cuatro columnas). El
-          idioma es <code>es</code> o <code>en</code>; si falta, se asume español.
-          El ministerio alimenta el consolidado por grupo.
-        </p>
-        <div className="actions">
-          <button className="btn">Generar enlaces y enviar correos</button>
-        </div>
-      </form>
-
-      <h2 className="sec">Ronda con enlace abierto</h2>
-      <p className="res-sub">
-        Un solo enlace para compartir por WhatsApp, en una reunión o donde
-        quieras. Lo activas y desactivas cuando quieras. Las respuestas
-        quedan anónimas y sin ministerio.
-      </p>
       <form action={crearRondaAbierta} className="panel">
         <label>
           Nombre de la ronda
           <input name="ciclo" required placeholder="Retiro de líderes — Octubre 2026" />
         </label>
-        <div className="actions"><button className="btn ghost">Crear ronda con enlace abierto</button></div>
+        <div className="actions"><button className="btn">Crear ronda</button></div>
       </form>
 
       <h2 className="sec">Rondas</h2>
@@ -162,6 +135,37 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
           </p>
         </>
       )}
+      <details className="opcional">
+        <summary>Invitaciones personales por correo (opcional)</summary>
+        <p className="res-sub">
+          Si prefieres que cada persona reciba su propio enlace de un solo uso
+          por correo, con su nombre y ministerio para el consolidado. Necesita
+          Resend configurado.
+        </p>
+
+      <form action={enviar} className="panel">
+        <label>
+          Nombre de la ronda
+          <input name="ciclo" required placeholder="Liderazgo ICP — Otoño 2026" />
+        </label>
+        <label>
+          Participantes — uno por línea: <code>nombre, correo, ministerio, idioma</code>
+          <textarea
+            name="participantes" required rows={8} spellCheck={false}
+            placeholder={"Jose Rivera, jose@ejemplo.com, Jóvenes, es\nMary Colon, mary@ejemplo.com, Alabanza, en"}
+          />
+        </label>
+        <p className="ayuda">
+          Puedes pegar directo desde Excel o Google Sheets (cuatro columnas). El
+          idioma es <code>es</code> o <code>en</code>; si falta, se asume español.
+          El ministerio alimenta el consolidado por grupo.
+        </p>
+        <div className="actions">
+          <button className="btn">Generar enlaces y enviar correos</button>
+        </div>
+      </form>
+
+      </details>
     </main>
   );
 }

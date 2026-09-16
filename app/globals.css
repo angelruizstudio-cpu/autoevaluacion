@@ -107,3 +107,7 @@
   .panel.enlace b{display:block;font-size:.88rem;color:var(--ink-soft);font-weight:500;margin-bottom:8px;}
   .panel .url{display:block;font-size:.9rem;word-break:break-all;background:var(--base);padding:10px 12px;border:1px solid var(--line);}
   .panel .url.off{color:var(--ink-soft);text-decoration:line-through;}
+  details.opcional{margin-top:40px;border-top:1px solid var(--line);padding-top:8px;}
+  details.opcional summary{cursor:pointer;font-family:var(--serif);font-size:1.2rem;font-weight:600;padding:10px 0;list-style:none;}
+  details.opcional summary::before{content:"+ ";color:var(--ink-soft);}
+  details.opcional[open] summary::before{content:"− ";}

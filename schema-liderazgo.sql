@@ -229,9 +229,11 @@ security definer
 set search_path = public
 as $$
   -- token_hash aleatorio: esta invitación no se puede reabrir por
-  -- enlace, solo vive en la cookie de sesión de quien la creó
+  -- enlace, solo vive en la cookie de sesión de quien la creó.
+  -- gen_random_uuid() es nativo; pgcrypto en Supabase vive en el
+  -- esquema extensions y con search_path = public no se encuentra.
   insert into public.invitaciones (ciclo_id, token_hash, idioma, iniciado_en, intentos)
-  select c.id, encode(gen_random_bytes(32), 'hex'), 'es', now(), 1
+  select c.id, replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''), 'es', now(), 1
     from public.ciclos c
    where c.enlace_publico = p_token
      and c.enlace_activo
