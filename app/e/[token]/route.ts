@@ -39,7 +39,7 @@ export async function GET(
   if (!token || token.length < 20 || token.length > 200) return invalido;
 
   const hash = await hashToken(token);
-  const { data, error } = await admin.rpc("iniciar_invitacion", {
+  const { data, error } = await admin().rpc("iniciar_invitacion", {
     p_token_hash: hash
   });
 

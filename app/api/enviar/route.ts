@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     n: i + 1, estilo: ITEM_STYLE[i], v
   }));
 
-  const { data, error } = await admin.rpc("consumir_invitacion", {
+  const { data, error } = await admin().rpc("consumir_invitacion", {
     p_invitacion_id: sesion.invitacionId,
     p_idioma: idioma,
     p_pcts: pcts,

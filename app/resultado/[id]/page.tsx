@@ -19,7 +19,7 @@ export default async function ResultadoPage({
   const { id } = await params;
   const { lang } = await searchParams;
 
-  const { data, error } = await admin
+  const { data, error } = await admin()
     .from("evaluaciones")
     .select("idioma, pct_directivo, pct_visionario, pct_afiliativo, pct_democratico, pct_ejemplar, pct_formativo")
     .eq("id", id)
