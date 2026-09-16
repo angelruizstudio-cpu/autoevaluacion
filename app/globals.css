@@ -104,3 +104,6 @@
   .tabla tr.sel td{background:#dde3ec;}
   .tabla small{display:block;font-size:.8rem;color:var(--ink-soft);}
   .tabla a{color:var(--deep);}
+  .panel.enlace b{display:block;font-size:.88rem;color:var(--ink-soft);font-weight:500;margin-bottom:8px;}
+  .panel .url{display:block;font-size:.9rem;word-break:break-all;background:var(--base);padding:10px 12px;border:1px solid var(--line);}
+  .panel .url.off{color:var(--ink-soft);text-decoration:line-through;}

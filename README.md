@@ -57,6 +57,13 @@ contexto de iglesia y ministerio. Acceso por enlace de un solo uso.
 | Se envían respuestas | `UPDATE ... WHERE consumido_en IS NULL` quema el token en la misma transacción que guarda la evaluación. |
 | Se abre otra vez | Cero filas devueltas → `/enlace-no-valido`. |
 
+**Enlace abierto.** Además, una ronda puede tener un enlace compartible
+(`/a/<token>`) que el admin activa y desactiva desde el panel. Cada
+visita crea su propia invitación anónima y de ahí en adelante el flujo
+es el mismo. Apagado, lleva a `/enlace-no-valido`; al activarlo vuelve a
+funcionar el mismo enlace. Las respuestas por esta vía no llevan nombre
+ni ministerio.
+
 Separar "abrir" de "consumir" evita el caso más común de soporte: a
 alguien se le cae la conexión a mitad del cuestionario y pierde su turno.
 
@@ -96,7 +103,8 @@ alguien se le cae la conexión a mitad del cuestionario y pierde su turno.
 
 ```
 app/
-  e/[token]/route.ts        valida el token, abre la sesión
+  e/[token]/route.ts        valida el token personal, abre la sesión
+  a/[token]/route.ts        enlace abierto de la ronda: crea invitación anónima
   api/enviar/route.ts       recalcula el puntaje, quema el token
   evaluacion/               el cuestionario (client component)
   resultado/[id]/           resultado, enlace permanente por UUID

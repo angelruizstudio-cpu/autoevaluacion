@@ -1,5 +1,6 @@
+import { headers } from "next/headers";
 import { admin } from "@/lib/supabase-admin";
-import { entrar, salir, enviar, esAdmin } from "./acciones";
+import { entrar, salir, enviar, esAdmin, crearRondaAbierta, enlaceAbierto } from "./acciones";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
   // ponytail: se traen todas las invitaciones para contar. A escala de
   // iglesia son cientos; si un dia son decenas de miles, contar en SQL.
   const [{ data: ciclos }, { data: invs }] = await Promise.all([
-    db.from("ciclos").select("id, nombre, creado_en, abierto").order("creado_en", { ascending: false }),
+    db.from("ciclos").select("id, nombre, creado_en, abierto, enlace_publico, enlace_activo").order("creado_en", { ascending: false }),
     db.from("invitaciones").select("id, ciclo_id, nombre, email, ministerio, idioma, iniciado_en, consumido_en, expira_en")
       .order("nombre")
   ]);
@@ -21,7 +22,9 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
   const porCiclo = new Map<string, typeof invs>();
   for (const i of invs ?? []) porCiclo.set(i.ciclo_id, [...(porCiclo.get(i.ciclo_id) ?? []), i]);
   const abierto = q.ciclo ? porCiclo.get(q.ciclo) ?? [] : [];
-  const nombreAbierto = ciclos?.find(c => c.id === q.ciclo)?.nombre;
+  const cicloSel = ciclos?.find(c => c.id === q.ciclo);
+  const h = await headers();
+  const base = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
 
   return (
     <main>
@@ -66,6 +69,20 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
         </div>
       </form>
 
+      <h2 className="sec">Ronda con enlace abierto</h2>
+      <p className="res-sub">
+        Un solo enlace para compartir por WhatsApp, en una reunión o donde
+        quieras. Lo activas y desactivas cuando quieras. Las respuestas
+        quedan anónimas y sin ministerio.
+      </p>
+      <form action={crearRondaAbierta} className="panel">
+        <label>
+          Nombre de la ronda
+          <input name="ciclo" required placeholder="Retiro de líderes — Octubre 2026" />
+        </label>
+        <div className="actions"><button className="btn ghost">Crear ronda con enlace abierto</button></div>
+      </form>
+
       <h2 className="sec">Rondas</h2>
       {!ciclos?.length && <p className="res-sub">Todavía no hay rondas.</p>}
       {!!ciclos?.length && (
@@ -78,7 +95,11 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
                 <tr key={c.id} className={c.id === q.ciclo ? "sel" : undefined}>
                   <td>
                     <a href={`/admin?ciclo=${c.id}`}>{c.nombre}</a>
-                    <small>{new Date(c.creado_en).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}{!c.abierto && " · cerrada"}</small>
+                    <small>
+                      {new Date(c.creado_en).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
+                      {!c.abierto && " · cerrada"}
+                      {c.enlace_publico && (c.enlace_activo ? " · enlace abierto activo" : " · enlace abierto apagado")}
+                    </small>
                   </td>
                   <td>{l.length}</td>
                   <td>{l.filter(i => i.iniciado_en).length}</td>
@@ -92,7 +113,31 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
 
       {q.ciclo && (
         <>
-          <h2 className="sec">{nombreAbierto ?? "Ronda"}</h2>
+          <h2 className="sec">{cicloSel?.nombre ?? "Ronda"}</h2>
+          {cicloSel && (
+            <div className="panel enlace">
+              <b>Enlace abierto</b>
+              {cicloSel.enlace_publico ? (
+                <>
+                  <code className={cicloSel.enlace_activo ? "url" : "url off"}>{base}/a/{cicloSel.enlace_publico}</code>
+                  <p className="ayuda">
+                    {cicloSel.enlace_activo
+                      ? "Activo: cualquiera con el enlace puede contestar."
+                      : "Apagado: el enlace lleva a «no disponible». Al activarlo vuelve a funcionar el mismo enlace."}
+                  </p>
+                </>
+              ) : (
+                <p className="ayuda">Esta ronda no tiene enlace abierto. Si lo activas, se crea uno.</p>
+              )}
+              <form action={enlaceAbierto} className="actions">
+                <input type="hidden" name="ciclo" value={cicloSel.id} />
+                <input type="hidden" name="accion" value={cicloSel.enlace_activo ? "desactivar" : "activar"} />
+                <button className={cicloSel.enlace_activo ? "btn ghost" : "btn"}>
+                  {cicloSel.enlace_activo ? "Desactivar enlace" : "Activar enlace"}
+                </button>
+              </form>
+            </div>
+          )}
           {!abierto.length && <p className="res-sub">Sin invitaciones en esta ronda.</p>}
           {!!abierto.length && (
             <table className="tabla">
@@ -100,7 +145,10 @@ export default async function Admin({ searchParams }: { searchParams: Params }) 
               <tbody>
                 {abierto.map(i => (
                   <tr key={i.id}>
-                    <td>{i.nombre ?? "—"}<small>{i.email} · {i.idioma}</small></td>
+                    <td>
+                      {i.nombre ?? (i.email ? "—" : "Anónimo")}
+                      <small>{i.email ? `${i.email} · ${i.idioma}` : "por enlace abierto"}</small>
+                    </td>
                     <td>{i.ministerio ?? "—"}</td>
                     <td>{estado(i)}</td>
                   </tr>

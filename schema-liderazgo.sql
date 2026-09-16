@@ -204,3 +204,39 @@ revoke all on public.consolidado_ministerio from anon, authenticated;
 -- Las funciones son SECURITY DEFINER: tampoco se exponen al cliente.
 revoke execute on function public.iniciar_invitacion(text)  from anon, authenticated;
 revoke execute on function public.consumir_invitacion(uuid, text, jsonb, text, smallint, jsonb) from anon, authenticated;
+
+-- =====================================================================
+-- Enlace abierto por ciclo (opcional)
+-- Un solo enlace compartible que el admin activa y desactiva desde el
+-- panel. Cada visita crea su propia invitación anónima, así el resto
+-- del flujo (sesión de 2 h, envío, quema) es exactamente el mismo.
+--
+-- El token se guarda EN CLARO, a diferencia de los personales: es un
+-- enlace pensado para compartirse y el admin necesita volver a verlo.
+-- Si la base se filtra, lo peor que pasa es que alguien conteste una
+-- autoevaluación; el admin lo desactiva y listo.
+--
+-- Si ya corriste el esquema antes, ejecuta SOLO este bloque.
+-- =====================================================================
+alter table public.ciclos
+  add column if not exists enlace_publico text unique,
+  add column if not exists enlace_activo  boolean not null default false;
+
+create or replace function public.abrir_enlace_publico(p_token text)
+returns table (invitacion_id uuid, idioma text)
+language sql
+security definer
+set search_path = public
+as $$
+  -- token_hash aleatorio: esta invitación no se puede reabrir por
+  -- enlace, solo vive en la cookie de sesión de quien la creó
+  insert into public.invitaciones (ciclo_id, token_hash, idioma, iniciado_en, intentos)
+  select c.id, encode(gen_random_bytes(32), 'hex'), 'es', now(), 1
+    from public.ciclos c
+   where c.enlace_publico = p_token
+     and c.enlace_activo
+     and c.abierto
+  returning id, idioma;
+$$;
+
+revoke execute on function public.abrir_enlace_publico(text) from anon, authenticated;

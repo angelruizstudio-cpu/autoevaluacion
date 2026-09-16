@@ -149,3 +149,40 @@ export async function enviar(form: FormData) {
     ...(fallidos.length ? { fallidos: fallidos.join(", ") } : {})
   });
 }
+
+/* --- enlace abierto --------------------------------------------------- */
+
+/** Ronda sin invitaciones personales: solo el enlace compartible. */
+export async function crearRondaAbierta(form: FormData) {
+  if (!(await esAdmin())) redirect("/admin");
+  const nombre = String(form.get("ciclo") ?? "").trim();
+  if (!nombre) ir({ error: "Ponle nombre a la ronda." });
+
+  const { data, error } = await admin().from("ciclos")
+    .insert({ nombre, enlace_publico: nuevoTokenPublico(), enlace_activo: true })
+    .select("id").single();
+  if (error) ir({ error: "No se pudo crear la ronda: " + error.message });
+  ir({ ciclo: data!.id });
+}
+
+/** Activa o desactiva el enlace abierto de una ronda; lo crea si no existe. */
+export async function enlaceAbierto(form: FormData) {
+  if (!(await esAdmin())) redirect("/admin");
+  const cicloId = String(form.get("ciclo") ?? "");
+  const activar = form.get("accion") === "activar";
+
+  const db = admin();
+  const { data: c } = await db.from("ciclos").select("enlace_publico").eq("id", cicloId).maybeSingle();
+  if (!c) ir({ error: "Esa ronda no existe." });
+
+  const { error } = await db.from("ciclos").update({
+    enlace_activo: activar,
+    ...(activar && !c!.enlace_publico ? { enlace_publico: nuevoTokenPublico() } : {})
+  }).eq("id", cicloId);
+  if (error) ir({ error: "No se pudo cambiar el enlace: " + error.message });
+  ir({ ciclo: cicloId });
+}
+
+// 192 bits, base64url: mas corto que el personal para que quepa en un
+// mensaje sin partirse; igual de inadivinable.
+const nuevoTokenPublico = () => randomBytes(24).toString("base64url");
