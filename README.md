@@ -30,10 +30,19 @@ contexto de iglesia y ministerio. Acceso por enlace de un solo uso.
    npm run dev
    ```
 
-4. **Vercel** — importa el repo, agrega las cuatro variables en
+4. **Vercel** — importa el repo, agrega las variables en
    Settings → Environment Variables (Production y Preview), y despliega.
+   Apaga *Deployment Protection → Vercel Authentication*, o nadie podrá
+   abrir los enlaces.
 
-5. **Generar enlaces**
+5. **Enviar invitaciones** — entra a `/admin` con `ADMIN_PASSWORD`,
+   ponle nombre a la ronda y pega los participantes (una persona por
+   línea: nombre, correo, ministerio, idioma; sirve pegar desde Excel).
+   El panel crea el ciclo, genera los tokens y manda los correos por
+   Resend. Necesita `RESEND_API_KEY` y `CORREO_DESDE` con un dominio
+   verificado en Resend.
+
+   Si prefieres mandar los correos por tu cuenta, el script sigue ahí:
 
    ```bash
    npm run enlaces -- "Liderazgo ICP — Otoño 2026" participantes.csv
@@ -76,15 +85,12 @@ alguien se le cae la conexión a mitad del cuestionario y pierde su turno.
   lleva la suya y un reinicio la borra. Sirve de piso, no de techo.
   **Antes de mandar el primer enlace**, activa Vercel → Firewall
   (límite por IP), o pásalo a Upstash Redis si lo quieres en código.
-- **Panel de administración.** Por ahora los enlaces se generan por
-  script y el consolidado se ve en el SQL Editor:
+- **Consolidado en el panel.** `/admin` muestra quién abrió y quién
+  completó, pero el promedio por ministerio sigue en el SQL Editor:
 
   ```sql
   select * from consolidado_ministerio where ciclo_id = '<uuid>';
   ```
-
-- **Envío por correo.** El script deja un CSV; el envío con SendGrid o
-  Azure Communication Services queda pendiente.
 
 ## Estructura
 
@@ -94,13 +100,15 @@ app/
   api/enviar/route.ts       recalcula el puntaje, quema el token
   evaluacion/               el cuestionario (client component)
   resultado/[id]/           resultado, enlace permanente por UUID
+  admin/                    panel: crea la ronda, genera tokens, manda correos
   Rueda.tsx                 la rueda SVG de seis sectores
 lib/
   content.ts                los 30 ítems y los 6 estilos, ES/EN
+  correo.ts                 plantilla ES/EN y envío por lotes con Resend
   limite.ts                 límite de intentos por IP (en memoria)
   puntuacion.ts             el modelo de puntaje (compartido)
-  sesion.ts                 JWT de sesión y hash de token
+  sesion.ts                 JWT de sesión (participante y admin) y hash de token
   supabase-admin.ts         cliente service_role, solo servidor
 scripts/
-  generar-enlaces.mjs       generación en lote
+  generar-enlaces.mjs       generación en lote a CSV, sin correo (alternativa al panel)
 ```
