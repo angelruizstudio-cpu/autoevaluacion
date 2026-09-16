@@ -70,10 +70,12 @@ alguien se le cae la conexión a mitad del cuestionario y pierde su turno.
 
 ## Falta por hacer
 
-- **Rate limiting en `/e/[token]`.** Sin esto la ruta es enumerable por
-  fuerza bruta. Actívalo en Vercel → Firewall (límite por IP), o con
-  Upstash Redis si quieres controlarlo en código. **Hazlo antes de
-  mandar el primer enlace.**
+- **Rate limiting de verdad en `/e/[token]`.** Ya hay un límite por IP
+  en `lib/limite.ts` (10 intentos por 10 minutos, responde 429), pero
+  la cuenta vive en la memoria del proceso: en Vercel cada instancia
+  lleva la suya y un reinicio la borra. Sirve de piso, no de techo.
+  **Antes de mandar el primer enlace**, activa Vercel → Firewall
+  (límite por IP), o pásalo a Upstash Redis si lo quieres en código.
 - **Panel de administración.** Por ahora los enlaces se generan por
   script y el consolidado se ve en el SQL Editor:
 
@@ -95,6 +97,7 @@ app/
   Rueda.tsx                 la rueda SVG de seis sectores
 lib/
   content.ts                los 30 ítems y los 6 estilos, ES/EN
+  limite.ts                 límite de intentos por IP (en memoria)
   puntuacion.ts             el modelo de puntaje (compartido)
   sesion.ts                 JWT de sesión y hash de token
   supabase-admin.ts         cliente service_role, solo servidor

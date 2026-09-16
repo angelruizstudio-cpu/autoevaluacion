@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { firmarSesion, hashToken, COOKIE, DURACION_SEG } from "@/lib/sesion";
+import { permitir } from "@/lib/limite";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,11 +15,22 @@ export const dynamic = "force-dynamic";
  * vez enviado, el enlace muere.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
   const base = process.env.NEXT_PUBLIC_SITE_URL!;
+
+  // Antes de tocar la base: sin esto la ruta es enumerable a fuerza
+  // bruta. El 429 habla de la IP, no del token, asi que no filtra si
+  // el enlace existe o no.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "desconocida";
+  if (!permitir(ip)) {
+    return new NextResponse("Demasiados intentos. Espera unos minutos.", {
+      status: 429,
+      headers: { "Retry-After": "600" }
+    });
+  }
 
   // Nunca distinguir entre "no existe", "ya usado" y "vencido" en la
   // respuesta publica: eso convierte la ruta en un oraculo.
