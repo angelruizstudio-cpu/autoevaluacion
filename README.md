@@ -36,7 +36,7 @@ contexto de iglesia y ministerio. Acceso por enlace de un solo uso.
 5. **Generar enlaces**
 
    ```bash
-   node scripts/generar-enlaces.mjs "Liderazgo ICP — Otoño 2026" participantes.csv
+   npm run enlaces -- "Liderazgo ICP — Otoño 2026" participantes.csv
    ```
 
 ## Cómo funciona el enlace de un solo uso

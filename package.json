@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test lib/*.test.ts",
-    "enlaces": "node scripts/generar-enlaces.mjs"
+    "enlaces": "node --env-file=.env.local scripts/generar-enlaces.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
