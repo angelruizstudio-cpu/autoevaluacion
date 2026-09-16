@@ -19,7 +19,10 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
-  const base = process.env.NEXT_PUBLIC_SITE_URL!;
+  // El host sale de la peticion, no de NEXT_PUBLIC_SITE_URL: esa se
+  // incrusta al compilar y si esta marcada como sensible en Vercel
+  // llega vacia. Esa variable solo la usa el script de enlaces.
+  const base = req.url;
 
   // Antes de tocar la base: sin esto la ruta es enumerable a fuerza
   // bruta. El 429 habla de la IP, no del token, asi que no filtra si
