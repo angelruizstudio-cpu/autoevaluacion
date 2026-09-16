@@ -26,7 +26,20 @@ export const ITEM_STYLE: StyleId[] = ["directivo","visionario","afiliativo","dem
   "directivo","visionario","afiliativo","democratico","ejemplar","formativo",
   "directivo","visionario","afiliativo","democratico","ejemplar","formativo"];
 
-export const CONTENT: Record<Lang, any> = {
+/** Solo las claves que son funciones: asi TS infiere sus parametros en
+ *  los dos idiomas. El resto del contenido queda suelto a proposito. */
+type Textos = {
+  counter: (a: number, b: number) => string;
+  resHead: (n: string) => string;
+  resSub: (m: string, n: string) => string;
+  repMany: (n: number) => string;
+  repSome: (n: number) => string;
+  lowest: (n: string, p: number, w: string) => string;
+  watch: (r: string) => string;
+  [clave: string]: any;
+};
+
+export const CONTENT: Record<Lang, Textos> = {
 es:{
   docTitle:"Seis maneras de dirigir — Autoevaluación de liderazgo",
   barTitle:"Autoevaluación de liderazgo",
